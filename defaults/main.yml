@@ -1,0 +1,14 @@
+# defaults file for users role
+---
+# Group names managed by the user role
+users_group_names: []
+
+# User list and user accounts configuration
+users_accounts: []
+
+# Default destination for user dotfiles git repository
+users_dotfiles_dest: '~/.config/dotfiles'
+
+# Additional packages to install by the user role
+users_additional_packages: []
+

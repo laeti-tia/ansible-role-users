@@ -1,0 +1,63 @@
+# User management role
+---
+
+# Groups
+- name: Add our groups
+  group:
+    name: '{{ item }}'
+    state: present
+  with_items:
+    - '{{ users_group_names }}'
+
+# User account
+- name: Add and manage user accounts
+  user:
+    name: '{{ item.name }}'
+    group: '{{ item.group }}'
+    groups: '{{ item.groups }}'
+    password: "{{ item.password | d('!') }}"
+    shell: '{{ item.shell }}'
+    state: '{{ item.state }}'
+    update_password: always
+  with_items:
+    - '{{ users_accounts }}'
+
+- name: Add ssh public keys to user accounts
+  authorized_key:
+    user: '{{ item.name }}'
+    exclusive: yes
+    manage_dir: yes
+    key: "{{ (item.sshkeys if item.sshkeys is string else '\n'.join(item.sshkeys)) | string }}"
+    state: present
+  with_items:
+    - '{{ users_accounts }}'
+
+- name: Get users dotfiles from git repository
+  become_user: '{{ item.name }}'
+  become: True
+  git:
+    repo: '{{ item.dotfiles_repo }}'
+    dest: '{{ item.dotfiles_dest | d(users_dotfiles_dest) }}'
+    update: True
+  with_items:
+    - '{{ users_accounts }}'
+  when: (item.name|d() and item.state|d('present') != 'absent' and item.dotfiles_repo|d())
+
+- name: Configure users dotfiles
+  become_user: '{{ item.name }}'
+  become: True
+  command: '{{ item.dotfiles_command }}'
+  args:
+    chdir: '{{ item.dotfiles_dest }}'
+  with_items:
+    - '{{ users_accounts }}'
+  when: (item.name|d() and item.state|d('present') != 'absent' and item.dotfiles_repo|d() and item.dotfiles_command|d())
+
+
+# Addtional packages we want to have
+- name: Install additional packages for pS devmesh users
+  package:
+    name: '{{ item }}'
+    state: present
+  with_items: '{{ users_additional_packages }}'
+
