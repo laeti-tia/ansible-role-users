@@ -32,6 +32,12 @@
   with_items:
     - '{{ users_accounts }}'
 
+- name: Make sure git is installed
+  package:
+    name: git
+    state: present
+  # TODO: make this conditional to when users are actually using dotfiles_repo
+
 - name: Get users dotfiles from git repository
   become_user: '{{ item.name }}'
   become: True
