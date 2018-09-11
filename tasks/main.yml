@@ -61,7 +61,7 @@
 
 
 # Addtional packages we want to have
-- name: Install additional packages for pS devmesh users
+- name: Install additional packages for users
   package:
     name: '{{ item }}'
     state: present
