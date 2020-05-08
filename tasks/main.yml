@@ -9,7 +9,7 @@
   with_items:
     - '{{ users_group_names }}'
 
-# User account
+# User accounts
 - name: Add and manage user accounts
   user:
     name: '{{ item.name }}'
@@ -25,12 +25,12 @@
 - name: Add ssh public keys to user accounts
   authorized_key:
     user: '{{ item.name }}'
-    exclusive: yes
-    manage_dir: yes
+    exclusive: "{{ item.sshkeys.exclusive | d('no') }}"
     key: "{{ (item.sshkeys if item.sshkeys is string else '\n'.join(item.sshkeys)) | string }}"
     state: present
   with_items:
     - '{{ users_accounts }}'
+  when: (item.name|d() and item.state|d('present') != 'absent' and item.sshkeys|d())
 
 - name: Make sure git is installed
   package:
@@ -59,8 +59,7 @@
     - '{{ users_accounts }}'
   when: (item.name|d() and item.state|d('present') != 'absent' and item.dotfiles_repo|d() and item.dotfiles_command|d())
 
-
-# Addtional packages we want to have
+# Addtional packages all users want to have
 - name: Install additional packages for users
   package:
     name: '{{ item }}'
